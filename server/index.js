@@ -313,12 +313,11 @@ app.post("/completions", async (req, res) => {
 	    model: "text-embedding-ada-002",
 	    input: outputToEmbedd
 	  });
-	  tokensEmbedUsed += inputEmbeddingResponse.data.usage.total_tokens;
+	  tokensEmbedUsed += outputEmbeddingResponse.data.usage.total_tokens;
 	  const outputEmbedding = outputEmbeddingResponse.data.data[0].embedding;
 
 	  let objToComplete = { text: previous, embedding: outputEmbedding, from: "bot" }
-	  //
-	  //console.log("Start DB "+ previous)
+	  console.log("Start DB "+ previous)
 	  try {
 	  completePreviousDb( objToComplete, dbName + ".json")
 	  } catch (e) { console.log(e) }
