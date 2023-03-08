@@ -9,6 +9,7 @@ const ChatProvider = ({children}) => {
   const [old, setOld] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [disableBackResponse, setDisableBackReponse] = useState(false);
   const scrollDown = useRef(null);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
   const [bot, setBot] = useState(JSON.parse(localStorage.getItem('bot')));
@@ -71,6 +72,40 @@ const ChatProvider = ({children}) => {
   const handleClear = () => {
     setChatMessages([]);
   }
+  const handleBack = async () => {
+    const response = await fetch("http://localhost:3000/previous_response", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_Api_Key}`
+      },
+      body: JSON.stringify({
+      })
+    })
+    const data = await response.json()
+
+    setDisableBackReponse( data.isThisFirst === "true" ? true : false )
+    let chatLog = chatMessages.slice(0,-1); 
+    setChatMessages(chatLog);
+    setChatMessages([...chatLog, {type: "bot", text: `${data.completionText}`}]) // bot
+  }
+
+  const handleNext = async () => {
+    const response = await fetch("http://localhost:3000/next_response", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_Api_Key}`
+      },
+      body: JSON.stringify({
+      })
+    })
+    const data = await response.json()
+    let chatLog = chatMessages.slice(0,-1); 
+    setChatMessages(chatLog);
+    setChatMessages([...chatLog, {type: "bot", text: `${data.completionText}`}]) // bot
+    setDisableBackReponse( false )
+  }
 
   const handleSubmit = async () => {
     if (!input) {
@@ -113,8 +148,8 @@ const ChatProvider = ({children}) => {
         .slice(-howManyInteractions, -1) // około 100 tokenów na wypowiedź
         .map((message) => {
           const prefix = message.type === "user"
-            ? `\n${bot}: ${message.text}`
-            : `\n${user}: ${message.text}`;
+            ? `\n${user}: ${message.text}`
+            : `\n${bot}: ${message.text}`;
           return prefix;
         })
         .join("");
@@ -133,6 +168,7 @@ const ChatProvider = ({children}) => {
       body: JSON.stringify({
         inputToEmbedd: inputToEmbedd,
         input: input,
+	previous: chatLog.slice(-2,-1)[0]?.text,
         lastThreeInteractions: getLastThreeInteractions(),
      //   dbName: user?.result?.email,
         temperature: 0.717828233,
@@ -153,6 +189,7 @@ const ChatProvider = ({children}) => {
     } else {
       setChatMessages([...chatLog, {type: "bot", text: `${data.completionText}`}]) // bot
     }
+
 
     if (scrollDown.current)
 	scrollDown.current.scrollIntoView({ behavior: "smooth" });
@@ -259,7 +296,7 @@ const ChatProvider = ({children}) => {
 
     // handle completions
     setInput("<Wait for changes to take effect>")
-    const response = await fetch("http://localhost:3000/edit", {
+    /*const response = await fetch("http://localhost:3000/edit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -271,7 +308,7 @@ const ChatProvider = ({children}) => {
        // dbName: user?.result?.email,
       })
     })
-    const data = await response.json()
+    const data = await response.json() */
 
     let chatLog = [...chatMessages.slice(0,-1), {type: "bot", text: botMsg}]
     setChatMessages( chatLog );
@@ -331,6 +368,40 @@ const ChatProvider = ({children}) => {
     })
     const data = await response.json()
     
+  }
+
+  const handleMoreResponses = async () => {
+   setLoading(true)
+    const response = await fetch("http://localhost:3000/more_responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_Api_Key}`
+      },
+      body: JSON.stringify({
+        temperature: 0.717828233,
+        ab: 0.115, 
+      })
+    })
+    const data = await response.json()
+    if(data?.errorMessage) {
+      setLoading(false)
+      return alert("There was an error while processing your request. Please try to refresh the page, if the error persists clear the chat and/or the cache.")
+    }
+    let chatLog = chatMessages.slice(0,-1); 
+
+    if(data.error === 1) {
+      setChatMessages([...chatLog])
+      setLoading(false)
+      alert("There was an error while processing your request. Please try to refresh the page, if the error persists clear the chat and/or the cache.")
+    } else {
+      setChatMessages([...chatLog, {type: "bot", text: `${data.completionText}`}]) // bot
+    }
+
+    if (scrollDown.current)
+	scrollDown.current.scrollIntoView({ behavior: "smooth" });
+    
+    setLoading(false);
   }
 
   const handleRegenerate = async () => {
@@ -396,6 +467,7 @@ const ChatProvider = ({children}) => {
       setLoading(false)
       alert("There was an error while processing your request. Please try to refresh the page, if the error persists clear the chat and/or the cache.")
     } else {
+      
       setChatMessages([...chatLog, {type: "bot", text: `${data.completionText}`}]) // bot
     }
 
@@ -409,12 +481,13 @@ const ChatProvider = ({children}) => {
 
   return (
     <ChatContext.Provider value={{
-      input, setInput, old, setOld, loading, setLoading, open, setOpen, scrollDown, handleClear, handleSubmit, handleRegenerate, handleRollback, handleEdit, handleGet, handleChatEdit, chatMessages
+      input, setInput, old, setOld, loading, setLoading, open, setOpen, scrollDown, handleClear, handleSubmit, handleRegenerate, handleRollback, handleEdit, handleGet, handleChatEdit, handleBack, handleNext, handleMoreResponses, chatMessages
     }}>
       {children}
     </ChatContext.Provider>
   );
 }
+
 
 
 

@@ -4,7 +4,7 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const cors = require("cors")
 const { Configuration, OpenAIApi } = require("openai");
-const { writeDb, writeFile, createDb, deleteLast, deleteLastTwo, getCurrentDateTime, getSimilarTextFromDb, clearJsonFile, readDb } = require("./dbFunctions")
+const { completePreviousDb, writeDb, writeFile, createDb, deleteLast, deleteLastTwo, getCurrentDateTime, getSimilarTextFromDb, clearJsonFile, readDb } = require("./dbFunctions")
 
 
 
@@ -17,7 +17,15 @@ const openai = new OpenAIApi(configuration);
 // Express API 
 const app = express()
 const port = 3000
+// remembering submit and responses
+let responses = []
+let responseIndex = 0
+let lastThreeInteractions = []
+let inputText = ""
+let context = []
+
 let tokensUsed = 0;
+let tokensEmbedUsed = 0;
 let profile = "default"
 let dbName = "default.history"
 let defaultMessages = [ {  role: "system", content: "You are character in RPG game." }, //system
@@ -30,8 +38,8 @@ let defaultMessages = [ {  role: "system", content: "You are character in RPG ga
 /* default before reading from the file */
 let profileData = {
   profile: "default",
-  botName: "bot",
-  userName: "user",
+  botName: "Elrond",
+  userName: "Adventurer",
   howManyInteractions: 3,
   messages: defaultMessages
 }
@@ -116,7 +124,7 @@ app.post("/api/profile", async (req, res) => {
       console.log(req.body)
       const { update, profile, botName, userName, howManyInteractions,
               system, rpg, longDesc, msgOne, msgTwo } = req.body
-      console.log(profile)
+      //console.log(profile)
       dbName = profile+".history"
       profileData.profile = profile
       profileData.botName = botName
@@ -133,7 +141,7 @@ app.post("/api/profile", async (req, res) => {
 	 writeFile(profileData,profile+".json")
       } else {
 	  profileData = readDb(profile+".json")
-	  console.log( profileData )
+	  //console.log( profileData )
 	  profileData.botName = botName 
 	  profileData.userName = userName
 	  profileData.howManyInteractions = howManyInteractions
@@ -211,7 +219,8 @@ app.post("/api/clearCache", async (req, res) => {
   const { data } = req.body;
   try {
     if (req.method === "POST" && data?.request === "delete") {
-      const fileContent = fs.readFileSync(data?.file, "utf8");
+      //const fileContent = fs.readFileSync(data?.file, "utf8");
+      const fileContent = fs.readFileSync(dbName + ".json", "utf8");
       const parsedContent = JSON.parse(fileContent);
       
       if (Array.isArray(parsedContent) && parsedContent.length === 0) {
@@ -221,7 +230,8 @@ app.post("/api/clearCache", async (req, res) => {
         return;
       }
       
-      clearJsonFile(data?.file);
+ //     clearJsonFile(data?.file);
+      clearJsonFile(dbName + ".json")
       res.json({
         status: "success",
       });
@@ -245,7 +255,7 @@ app.post("/rollback", async (req, res) => {
 app.post("/edit", async (req, res) => {
 
       console.log("Edit last interaction")
-      console.log( req.body )
+      //console.log( req.body )
 
       const { input, output} = req.body //, dbName}
       deleteLast(`${dbName}.json`)
@@ -290,28 +300,65 @@ app.post("/completions", async (req, res) => {
     let retry = 1
       while (retry == 1) {
     try {
-      const { lastThreeInteractions, inputToEmbedd, input} = req.body
+      const { lastThreeInteractions, inputToEmbedd, input, previous} = req.body
+        
+      if (!( previous === undefined)) {
 
-      //console.log( req )	
-      console.log("Completions")
-/* TEST */
-      // embed the input
+	  //console.log("Previous nonempty "+ previous)
+	  const outputToEmbedd = `\n${profileData.botName} : ${previous}`;
+	  
+	  // embed output
+	  console.log("Getting outputEmbedding from openAi")
+	  const outputEmbeddingResponse = await openai.createEmbedding({
+	    model: "text-embedding-ada-002",
+	    input: outputToEmbedd
+	  });
+	  tokensEmbedUsed += inputEmbeddingResponse.data.usage.total_tokens;
+	  const outputEmbedding = outputEmbeddingResponse.data.data[0].embedding;
+
+	  let objToComplete = { text: previous, embedding: outputEmbedding, from: "bot" }
+	  //
+	  //console.log("Start DB "+ previous)
+	  try {
+	  completePreviousDb( objToComplete, dbName + ".json")
+	  } catch (e) { console.log(e) }
+	 // console.log("Done DB "+ previous)
+      }
+	//console.log("Input embedding")
+      console.log("Getting inputEmbedding from openAi")
       const inputEmbeddingResponse = await openai.createEmbedding({       
         model: "text-embedding-ada-002",
         input: inputToEmbedd
       });
+      tokensEmbedUsed += inputEmbeddingResponse.data.usage.total_tokens;
       const inputEmbedding = inputEmbeddingResponse.data.data[0].embedding;
-      console.log("Embedded")
+      const objToDb = {
+        input: {
+          text: inputToEmbedd,
+          embedding: inputEmbedding,
+          from: "user",
+        },
+        output: {
+          text: "",
+          embedding: [],
+          from: "bot"
+        },
+        time: getCurrentDateTime(),
+      } 
+      // console.log( req.body )	
+
+      writeDb(objToDb, `${dbName}.json`)
+      console.log("Getting replies from openAi")
+/* TEST */
       
-      const context = getSimilarTextFromDb(inputEmbedding, `${dbName}.json`) // This function returns the four most similars interactions between the Student and the Teacher
-      console.log("Got similar")
+      //const context = getSimilarTextFromDb(inputEmbedding, `${dbName}.json`) // This function returns the four most similars interactions between the Student and the Teacher
+      context = getSimilarTextFromDb(inputEmbedding, `${dbName}.json`) 
       
       let msg = [...profileData.messages, 
 	    {role: "user", content: `\n ${context} \n`},
 	    {role: "user", content: `\n${lastThreeInteractions}\n{{user}}:${input}\n{{char}}:`}
       ]
       
-      console.log( msg )
 
       const response = await openai.createChatCompletion({
         model: "gpt-3.5-turbo-0301",
@@ -319,14 +366,15 @@ app.post("/completions", async (req, res) => {
         //model: "text-davinci-003", incorrect key
         messages: replaceVars( msg ),
         temperature: 0.8,
-        max_tokens: 500, // 500
+        max_tokens: 300, // 500
+	n : 2,
         //top_p: 1,
         frequency_penalty: 0.4,
         presence_penalty: 1,
         stop: [ `${profileData.botName}: `, `${profileData.userName}: ` ],
       });
       //console.log(`\n--\n${lastThreeInteractions} --- ${input} --- ${profileData.botName}`);
-
+      /*
       const outputToEmbedd = `\nbot: ${response.data.choices[0].message.content}`;
       
       // embed output
@@ -334,6 +382,7 @@ app.post("/completions", async (req, res) => {
        model: "text-embedding-ada-002",
         input: outputToEmbedd
       });
+      
       const outputEmbedding = outputEmbeddingResponse.data.data[0].embedding;
       
       const objToDb = {
@@ -350,21 +399,37 @@ app.post("/completions", async (req, res) => {
         time: getCurrentDateTime(),
       }
 
-      console.log(response.data);
       
-      writeDb(objToDb, `${dbName}.json`)
+      writeDb(objToDb, `${dbName}.json`) */
+      //console.log(response.data);
+      responses = []
+      responseIndex = 0
+
+	try {
+	  response.data.choices.forEach(( item, index) => {
+	  //console.log("New response" + item.message.content)
+          responses.push( item.message.content )
+      })
+	} catch (e) { console.log(e) }
         
       res.json({
-        completionText: replaceVarsInString(response.data.choices[0].message.content),
+        //completionText: replaceVarsInString(response.data.choices[0].message.content),
+        completionText: replaceVarsInString(responses[0]),
         status: "success"
       }) 
       tokensUsed += response.data.usage.total_tokens;
-      console.log( `Total tokens used from last restart: ${tokensUsed}`)
-/* TEST */
-  /*    res.json({
-        completionText: "Static response to test without using tokens",
+      let usedTotal = tokensUsed + tokensEmbedUsed;
+      console.log( `Total tokens used from last restart: ${tokensUsed} text (turbo gpt chat) + ${tokensEmbedUsed} embeddings (ada) = ${usedTotal}`)
+/* TEST */ /*
+	responses = [ 
+	    "ABC", "BCD", "EFG"
+	]
+	responseIndex = 0
+      res.json({
+        completionText: responses[0]
         status: "success"
-      }) */
+      }) 
+      */
       retry = 0
     
 
@@ -397,6 +462,72 @@ app.post("/completions", async (req, res) => {
 
   }
 });
+
+app.post("/next_response", async (req, res) => { // post because it may get new responses from openAI
+    if ( responseIndex>= responses.length-1)
+	responseIndex=0;
+    else
+	responseIndex++;
+    console.log(`Sending next response ${responseIndex}`)    
+      res.json({
+        completionText: replaceVarsInString(responses[responseIndex]),
+        //completionText: "Next Static response to test without using tokens",
+        status: "success"
+      }) 
+})
+
+app.post("/previous_response", async (req, res) => {
+    if ( responseIndex>0) responseIndex = responses.length-1//responseIndex--;
+    console.log(`Sending previous response ${responseIndex}`)    
+      res.json({
+ //       completionText: "Prev Static response to test without using tokens",
+        completionText: replaceVarsInString(responses[responseIndex]),
+	//isThisFirst: ( responseIndex == 0)?"true":"false",
+	isThisFirst: "false",
+        status: "success"
+      }) 
+})
+
+app.post("/more_responses", async (req, res) => { // post because it may get new responses from openAI
+
+    console.log("Getting more responses")
+      let msg = [...profileData.messages, 
+	    {role: "user", content: `\n ${context} \n`},
+	    {role: "user", content: `\n${lastThreeInteractions}\n{{user}}:${inputText}\n{{char}}:`}
+      ]
+      
+      //console.log( msg )
+
+      const response = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo-0301",
+        //model: "gpt-3.5-turbo",
+        //model: "text-davinci-003", incorrect key
+        messages: replaceVars( msg ),
+        temperature: 0.8,
+        max_tokens: 300, // 500
+	n : 2,
+        //top_p: 1,
+        frequency_penalty: 0.4,
+        presence_penalty: 1,
+        stop: [ `${profileData.botName}: `, `${profileData.userName}: ` ],
+      });
+
+    responseIndex = responses.length 
+    //console.log(`Index now ${responseIndex} ${responses.length}`)    
+      response.data.choices.forEach(( item, index) => {
+	//  console.log("New response" + item.message.content)
+          responses.push( item.message.content )
+      })
+      tokensUsed += response.data.usage.total_tokens;
+      let usedTotal = tokensUsed + tokensEmbedUsed;
+      console.log( `Total tokens used from last restart: ${tokensUsed} text (turbo gpt chat) + ${tokensEmbedUsed} embeddings (ada) = ${usedTotal}`)
+
+      res.json({
+        completionText: replaceVarsInString(responses[responseIndex]),
+        //completionText: "Next Static response to test without using tokens",
+        status: "success"
+      }) 
+})
 
 
 

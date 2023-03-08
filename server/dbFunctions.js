@@ -58,6 +58,23 @@ function writeFile(obj, dbName = "default.json") {
       }
   })) 
 }
+function completePreviousDb(cmpl, dbName = "db.json") {
+    console.log("Completed previous ")
+    if (!cmpl) {return console.log("Please provide data to complete!")}
+    try {
+	let data = readDb(dbName);
+    console.log("red Completed previous "+ data)
+	let obj=data.pop()
+    console.log("pop Completed previous  " + obj)
+	obj.output= cmpl
+    console.log("cmpl Completed previous ")
+	data.push(obj)
+        fs.writeFileSync(dbName, JSON.stringify(data, null, 2));
+        return console.log("Completed previous succesful")
+    } catch (e) {
+        return console.log("Complete failed! with the following errror:", e)
+    }
+}
 
 function writeDb(obj, dbName = "db.json") {
     if (!obj) {return console.log("Please provide data to save!")}
@@ -117,4 +134,4 @@ function getSimilarTextFromDb(inputEmbedding, dbName = "db.json") {
     return topThree.map(r => r.interaction).join("");
   }
 
-module.exports = { readDb, writeFile, writeDb, deleteLast, deleteLastTwo, getSimilarTextFromDb, getCurrentDateTime, encodeToSHA256, cosineSimilarity, createDb, clearJsonFile }
+module.exports = { completePreviousDb, readDb, writeFile, writeDb, deleteLast, deleteLastTwo, getSimilarTextFromDb, getCurrentDateTime, encodeToSHA256, cosineSimilarity, createDb, clearJsonFile }
