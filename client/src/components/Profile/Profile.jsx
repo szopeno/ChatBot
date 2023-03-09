@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useContext } from "react";
+import { ChatContext } from "../ChatContext";
 import { useDispatch } from 'react-redux';
 import { Avatar, Button, Paper, Typography, Container } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
@@ -11,12 +13,19 @@ import saveButton from "../../assets/icons8-upload-100.png"
 
 
 const Profile = () => {
+  const {
+    //loading,
+    bot, setBot,
+    user, setUser,
+    profileName, setProfileName,
+    handleProfile, handleSaveProfile
+} = useContext(ChatContext)
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const classes = useStyles();
-const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
-const [bot, setBot] = useState(JSON.parse(localStorage.getItem('bot')));
-const [profileName, setProfileName] = useState(JSON.parse(localStorage.getItem('profileName')));
+//const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+//const [bot, setBot] = useState(JSON.parse(localStorage.getItem('bot')));
+//const [profileName, setProfileName] = useState(JSON.parse(localStorage.getItem('profileName')));
   const [howManyInteractions, setHowManyInteractions] = useState(JSON.parse(localStorage.getItem('howManyInteractions')));
 
   const [systemStr, setSystemStr] = useState(JSON.parse(localStorage.getItem('systemStr')));
@@ -26,7 +35,8 @@ const [profileName, setProfileName] = useState(JSON.parse(localStorage.getItem('
   const [msgTwo, setMsgTwo] = useState(JSON.parse(localStorage.getItem('msgTwo')));
 
   const saveProfile = (event) => {
-
+      handleSaveProfile(event)
+    /*
     setProfileName( event.target.profile.value )
     localStorage.setItem( "profileName", JSON.stringify( event.target.profile.value ))
     setUser( event.target.user.value )
@@ -47,13 +57,13 @@ const [profileName, setProfileName] = useState(JSON.parse(localStorage.getItem('
     setMsgOne( event.target.msgone.value )
     localStorage.setItem( "msgOne", JSON.stringify( event.target.msgone.value ))
     setMsgTwo( event.target.msgtwo.value )
-    localStorage.setItem( "msgTwo", JSON.stringify( event.target.msgtwo.value ))
+    localStorage.setItem( "msgTwo", JSON.stringify( event.target.msgtwo.value ))*/
 
-    dispatch({ type: SAVE_PROFILE, data: { 
-	  profile: profileName, botName: bot, userName: user, howManyInteractions: howManyInteractions, 
+    /*dispatch({ type: SAVE_PROFILE, data: { 
+	  name: profileName, bot: bot, user: user, howManyInteractions: howManyInteractions, 
 	  longDesc: longDesc, rpg: rpg, system: systemStr, msgOne: msgOne, msgTwo: msgTwo,
 	  update: true
-    }})
+    }}) */
     navigate("/")
   }
 

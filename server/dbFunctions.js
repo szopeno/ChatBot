@@ -115,9 +115,9 @@ function clearJsonFile(filename) {
 
 function getSimilarTextFromDb(inputEmbedding, dbName = "db.json") {
 
-    let jsonData = JSON.parse(fs.readFileSync(dbName, 'utf-8'));
+    let data = new Map(Object.entries(JSON.parse(fs.readFileSync(dbName, "utf-8"))))
     let result = [];
-    jsonData.forEach(embedding => {
+    data.forEach(embedding => {
         let similarity = cosineSimilarity(inputEmbedding, embedding.input.embedding);
         if (similarity > 0.8) {
             result.push({
