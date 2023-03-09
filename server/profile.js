@@ -17,8 +17,11 @@ function defaultProfile() { return {
 }}
 
 /* GLOBALS */
-let profileData 
+let profileData = defaultProfile()
 let dir = "./profiles/"
+let cfgName = "config"
+
+function cfg() { return cfgName }
 
 
 function profile() {
@@ -33,4 +36,4 @@ function profileDir() {
 }
 
 
-module.exports = { profileDir, profile, setProfile, defaultProfile }
+module.exports = { profileDir, profile, setProfile, defaultProfile, cfg }

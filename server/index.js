@@ -27,16 +27,21 @@ const port = 3000
 //let responseIndex = 0
 let inputText = ""
 let context = []
+let defaultCfg = { profile: "island" }
 
-let tokensUsed = 0;
-let tokensEmbedUsed = 0;
+const cfg = "config"
 
-ensureProfileExists("default")
-console.log("czy current istniej?")
-ensureProfileExists("current")
-console.log("istnieje, uff current istniej?")
+if (!fs.existsSync(cfg)) {
+    fs.writeFileSync(cfg, JSON.stringify(defaultCfg, null, 2));
+}
 
-readProfile()
+{
+let { profile } = JSON.parse(fs.readFileSync(cfg, "utf-8"))
+    console.log( "profile: " + profile )
+    switchProfile(profile)
+}
+
+
 console.log( "Profile: " + profile().name )
 
 

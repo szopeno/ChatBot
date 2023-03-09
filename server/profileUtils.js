@@ -1,28 +1,21 @@
 const fs = require("fs")
 const { readHistory} = require("./history.js")
-const { setProfile, profile, profileDir, defaultProfile } = require("./profile.js")
+const { setProfile, profile, profileDir, defaultProfile, cfg } = require("./profile.js")
 
 
 function switchProfile( profileName ) {
-    ensureProfileExists( profileName )    
-    fs.unlinkSync(profileDir()+"current.profile.json", (err => {
-	  if (err) console.log(err);
-	  else {
-	  }
-	}))
-    fs.symlinkSync(profileName+".profile.json",profileDir()+"current.profile.json", (err => {
-	  if (err) console.log(err);
-	  else {
-	  }
-	}))
+    fs.writeFileSync(cfg(), JSON.stringify({ profile: profileName}, null, 2));
+    profile().name = profileName
+    ensureProfileExists()
     readProfile()
     console.log(`Switched profile to ${profileName}`)
 }
 
-function ensureProfileExists(dbName = "current") {
+function ensureProfileExists() {
+    let dbName = profileDir()+profile().name + ".profile.json"
     try {
-        if (!fs.existsSync(profileDir()+dbName+".profile.json")) {
-	    if (dbName=="current") {
+        if (!fs.existsSync(profileDir()+profile().name+".profile.json")) {
+	    /* if (dbName=="current") {
 		console.log(`${dbName} coś kurwa nie istnieje, ciekawe nie?`)
 		ensureProfileExists("default");
 		fs.symlinkSync("default.profile.json",profileDir()+"current.profile.json", (err => {
@@ -31,8 +24,8 @@ function ensureProfileExists(dbName = "current") {
 		      }
 		    }))
 		return console.log("Linked current to default.profile.json");
-	    }
-            return resetProfile(dbName)
+	    } */
+            return resetProfile()
         } else {
             return console.log(`${dbName} file already exists`);
         }
@@ -41,11 +34,11 @@ function ensureProfileExists(dbName = "current") {
     }
 }
 
-function resetProfile(dbName = "current") {
-    dbName = profileDir()+dbName + ".profile.json"
+function resetProfile() {
+    let dbName = profileDir()+profile().name + ".profile.json"
     try {
 	let obj = defaultProfile()
-	if (dbName != "current") obj.profileName = dbName
+	if (dbName != "current") obj.profile = profileName
 	fs.writeFileSync(dbName, JSON.stringify(obj, null, 2));
 	return console.log(`${dbName} file reset successfully`);
     } catch (e) {
@@ -53,10 +46,10 @@ function resetProfile(dbName = "current") {
     }
 }
 
-function readProfile(dbName = "current") {
+function readProfile() {
     try {
 	//ensureProfileExists(dbName)
-	dbName = profileDir()+dbName + ".profile.json"
+	let dbName = profileDir()+profile().name + ".profile.json"
 	const data = fs.readFileSync(dbName, "utf-8")
 	return setProfile( JSON.parse(data))
     } catch (e) {
@@ -64,8 +57,8 @@ function readProfile(dbName = "current") {
     }
 }
 
-function deleteProfile(name, dbName = "current"){
-    dbName = profileDir()+dbName + ".profile.json"
+function deleteProfile() {
+    let dbName = profileDir()+profile().name + ".profile.json"
     try {
         fs.unlinkSync(dbName)
         return console.log("delete succesful")
@@ -74,8 +67,8 @@ function deleteProfile(name, dbName = "current"){
     }
 }
 
-function writeProfile(dbName = "current") {
-    dbName = profileDir()+dbName + ".profile.json"
+function writeProfile() {
+    let dbName = profileDir()+profile().name + ".profile.json"
     try {
         fs.writeFileSync(dbName, JSON.stringify(profile(), null, 2));
         return console.log("Save succesful")
