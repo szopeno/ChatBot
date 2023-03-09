@@ -19,7 +19,7 @@ import { ChatContext } from './ChatContext';
 
 function Welcome() {
 
-   // const [bot, setBot] = useState(JSON.parse(localStorage.getItem('bot')));
+   //const [bot, setBot] = useState(JSON.parse(localStorage.getItem('bot')));
    // const [disableBackResponse, setDisableBackReponse] = useState(true);
   const {
     input,
@@ -40,6 +40,7 @@ function Welcome() {
     disableBackResponse,
     // loadingCustomization,
     open,
+    connected,
     setOpen,
     // setCustomizedPrompt,
     // customizedInput,
@@ -50,99 +51,11 @@ function Welcome() {
 
   return (
     <div className="responsive px-4 pb-4 flex justify-center">
-      {/* <Sidebar
-        open={open}
-        setOpen={setOpen}
-        // handleCustomization={handleCustomization}
-        loading={loading}
-        // loadingCustomization={loadingCustomization}
-        // customizedInput={customizedInput}
-        // setCustomizedInput={setCustomizedInput}
-        // setCustomizedPrompt={setCustomizedPrompt}
-        classNames={` ${
-          open ? "w-[30%] sidebar h-[100%] mr-8 overflow-y-scroll scrollable transition duration-600" : "hidden"
-        } h-screen p-4 pt-4 relative transition duration-300 hidden-mobile`}
-        fontSize={22}
-      />
-      <Sidebar
-        open={open}
-        setOpen={setOpen}
-        // handleCustomization={handleCustomization}
-        loading={loading}
-        // loadingCustomization={loadingCustomization}
-        // customizedInput={customizedInput}
-        // setCustomizedInput={setCustomizedInput}
-        // setCustomizedPrompt={setCustomizedPrompt}
-        classNames={` ${
-          open ? "w-full h-screen sidebar-mobile mr-8 z-10 fixed -top-0 left-0" : "hidden"
-        } p-4 pt-4 duration-300 hidden-lg h-[screen]`}
-        fontSize={20} <!--// message.type==bot poniżej było-->
-
-            {chatMessages.map((message, index) => (
-            <div key={index} className={`my-2 ${message.type === 'user' ? 'text-gray-900' : 'text-gray-700'}`}> 
-              <p className="font-bold text-gray-600">{message.type === 'user' ? 'You' : bot}</p>
-              <p ref={scrollDown} className='text-white'>{message.text}</p>
-            </div>  
-          ))}
-
-            {chatMessages.map((message, index) => {
-		if (index<chatMessages.size || (message.type === 'user')) {(
-		    <div key={index} className={`my-2 ${message.type === 'user' ? 'text-gray-900' : 'text-gray-700'}`}> 
-		      <p className="font-bold text-gray-600">{message.type === 'user' ? 'You' : bot} : {index}</p>
-		      <p ref={scrollDown} className='text-white'>{message.text}</p>
-		    </div>  
-		)}else {(
-		    <div key={index} className={`my-2 ${message.type === 'user' ? 'text-gray-900' : 'text-gray-700'}`}> 
-		      <p className="font-bold text-gray-600">{message.type === 'user' ? 'You' : bot} : {index}</p>
-		      <p ref={scrollDown} contentEditable="true" className='text-white'>LAST: {message.text}</p>
-		    </div>  
-		)}
-	        }
-          )}
-
-		 <button
-              className="cursor-pointer inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300"
-              onClick={handleRegenerate}
-              disabled={loading}
-              >
-              <img className="w-7" src={resendicon} alt="resend icon" />
-		</button>
-
-          <span className="absolute left-4 bottom-0 flex items-center">
-            <button
-              className="cursor-pointer inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300"
-              onClick={handleRollback}
-              disabled={loading}
-            >
-              <img className="w-5" src={rollbackicon} alt="rollback icon" />
-            </button>
-          </span>
-
-          <span className="absolute -left-4 top-0 flex items-center">
-            <button
-              className="cursor-pointer inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300"
-              onClick={handleRegenerate}
-              disabled={loading}
-            >
-              <img className="w-7" src={resendicon} alt="resend icon" />
-            </button>
-          </span>
-
-          <span className="absolute left-4 top-0 flex items-center">
-            <button
-              className="cursor-pointer inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300"
-              onClick={handleGet}
-              disabled={loading}
-            >
-              <img className="w-7" src={geticon} alt="geticon icon" />
-            </button>
-          </span>
-      /> */} 
       <div className="scrollable rounded-lg h-[100%] shadow-md p-6 blue-glassmorphism w-full overflow-y-scroll">
           <div className="flex flex-col items-start flex-grow mb-6 min-h-[90%]">
             {chatMessages.map((message, index) => (
             <div key={index} className={`my-2 ${message.type === 'user' ? 'text-gray-900' : 'text-gray-700'}`}> 
-              <p className="font-bold text-gray-600">{message.type === 'user' ? 'You' : bot}</p>
+              <p className="font-bold text-gray-600">{message.type === 'user' ? 'You' : message.type === 'system' ? "system message" : bot}</p>
               <p ref={scrollDown} contentEditable={(index == chatMessages.length-1) ? "true" : "false"} className='text-white' {...((index== chatMessages.length-1)? {onBlur: handleChatEdit}:{})} suppressContentEditableWarning={true}>{message.text}</p>
              { (index==chatMessages.length-1 && message.type === "bot") && ( <div>
 		 <button
@@ -194,7 +107,7 @@ function Welcome() {
             <button
               className="cursor-pointer inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-red-500 hover:bg-gray-300"
               onClick={handleClear}
-              disabled={loading}
+              disabled={loading || ! connected}
             >
               <img className="w-7" src={clearChat} alt="clear icon" />
             </button>
@@ -203,7 +116,7 @@ function Welcome() {
             <button
               className="cursor-pointer inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300"
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={loading || !connected}
             >
               <img className="w-7" src={sendicon} alt="send icon" />
             </button>
@@ -213,6 +126,7 @@ function Welcome() {
             type="text"
             placeholder="Write something"
             value={input}
+            disabled={loading || ! connected}
             onChange={(event) => {
               setInput(event.target.value)
             }}

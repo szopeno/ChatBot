@@ -27,6 +27,8 @@ function readHistory(){
 }
 function lastInteractions(howMany, dbName = "default") {
     let last = []
+    console.log("HOWMANY "+ howMany )
+    howMany =profile().howManyInteractions
     readHistory().slice(-howMany).forEach( (item, index) => {
 	if (item.message.type === 'bot')
 	    last.push( `${profile().bot}: ${item.message.text}`)

@@ -5,6 +5,8 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
+let tokensUsed = 0;
+let tokensEmbedUsed = 0;
 
 async function embedInput(input) {
     let cont = 1
@@ -17,6 +19,8 @@ async function embedInput(input) {
      });
 	cont = 0
      const inputEmbedding = inputEmbeddingResponse.data.data[0].embedding;
+
+     tokensEmbedUsed += inputEmbeddingResponse.data.usage.total_tokens
      return { usage: inputEmbeddingResponse.data.usage.total_tokens,
 	 output:inputEmbeddingResponse.data.data[0].embedding
      }
@@ -80,9 +84,9 @@ async function requestCompletion(msg, res) {
 	//  console.log("New response" + item.message.content)
           profile().responses.push( item.message.content )
       })
-  //    let tokensUsed = response.data.usage.total_tokens;
- //     let usedTotal = tokensUsed + tokensEmbedUsed;
-  //    console.log( `Total tokens used from last restart: ${tokensUsed} text (turbo gpt chat) + ${tokensEmbedUsed} embeddings (ada) = ${usedTotal}`)
+      tokensUsed += response.data.usage.total_tokens;
+      let usedTotal = tokensUsed + tokensEmbedUsed;
+      console.log( `Total tokens used from last restart: ${tokensUsed} text (turbo gpt chat) + ${tokensEmbedUsed} embeddings (ada) = ${usedTotal}`)
 
       cont = 0
       return {

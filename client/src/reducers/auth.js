@@ -1,4 +1,6 @@
 import * as actionType from '../constants/actionTypes';
+import { useContext } from "react";
+import { ChatContext } from "../components/ChatContext";
 
 
 const authReducer = async (state = { authData: null }, action) => {
@@ -12,6 +14,27 @@ const authReducer = async (state = { authData: null }, action) => {
       localStorage.clear();
 
       return { ...state, authData: null, loading: false, errors: null };
+
+    case actionType.CONNECT:
+	  try {
+	     localStorage.clear();
+	     localStorage.setItem('connected', JSON.stringify(true));
+	     setConnected("true")
+	     let str = action?.data 
+	     const response = await fetch("http://localhost:3000/api/profile", { // GET
+	      headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${import.meta.env.VITE_Api_Key}`
+	      },
+	      }) 
+
+	    const data = await response.json() 
+	      // update profile?!
+
+      } catch (e) {
+	  alert(e)
+      };
+	return {...state, authData: null, errors: null }
 
     case actionType.SAVE_PROFILE:
 	  try {
@@ -36,7 +59,7 @@ const authReducer = async (state = { authData: null }, action) => {
 	return {...state, authData: null, errors: null }
 
     case actionType.CLEAR_CACHE:
-      const clearCache = await fetch("http://localhost:3000/api/clearCache", {
+      const clearCache = await fetch("http://localhost:3000/api/reset_history", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +77,30 @@ const authReducer = async (state = { authData: null }, action) => {
       if(data.status === "File already cleared") {
         alert("Cache already cleared")
       }  else {
-        alert("All the previous conversations have been cleared, and now the cache is cleaned")
+        alert("History of conversation have been cleared, and now the cache is cleaned")
+      }
+	  break;
+
+    case actionType.CLEAR_FACTS:
+      const clearFacts = await fetch("http://localhost:3000/api/reset_facts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: {request: "delete", file: action?.data?.file},
+        })
+      })
+      const dataF = await clearFacts.json()
+      if(dataF?.error) {
+        return alert("There was an error while processing your request. Please try to refresh the page, if the error persists clear the chat and/or the cache. Finally if the erorr is still present try again later.")
+      }
+      console.log(dataF.error)
+
+      if(dataF.status === "File already cleared") {
+        alert("Cache already cleared")
+      }  else {
+        alert("All the facts have been cleared, and now the cache is cleaned")
       }
 
     default:
