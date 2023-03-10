@@ -107,7 +107,7 @@ function getSimilarFacts(input) {
     data.forEach(fact => {
         let similarity = cosineSimilarity(input, fact.embedding);
 	console.log(`${fact.text} : ${similarity}`)
-        if (similarity > 0.8) {
+        if (similarity > 0.75) {
             result.push({
                 fact: `${coma} ${fact.text}`,
                 similarity: similarity
@@ -116,12 +116,12 @@ function getSimilarFacts(input) {
         }
     });
     result.sort((a, b) => b.similarity - a.similarity);
-    let topThree = result.slice(0, 4);
-    console.log( JSON.stringify( topThree ))
+    let topBest = result.slice(0, 5); /// name is left from the past, it's actuall
+    console.log( JSON.stringify( topBest ))
 
     // topThree.reverse()
     // console.log(`The top three most similar interactions are:`, topThree.map(r => r.interaction).join(""))
-    return "(Facts to remember: "+ topThree.map(r => r.fact).join(" ") + ")";
+    return "(Facts to remember: "+ topBest.map(r => r.fact).join(" ") + ")";
   }
 
 function extractFacts(msg){

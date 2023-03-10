@@ -27,7 +27,7 @@ const port = 3000
 //let responseIndex = 0
 let inputText = ""
 let context = []
-let defaultCfg = { profile: "island" }
+let defaultCfg = { profile: "default" }
 
 const cfg = "config"
 
@@ -96,6 +96,7 @@ app.post("/api/sync", async (req, res) => {
 
 app.get("/api/profile", async (req, res) => {
   console.log("Profile sent")
+    readProfile()
     console.log(JSON.stringify(readHistory().slice(-1)))
 
     let lastHistory = readHistory().slice(-1);
@@ -104,8 +105,11 @@ app.get("/api/profile", async (req, res) => {
 	    console.log("Getting more responses")
 	      let msg = [...profile().messages, 
 		    {role: "user", content: `\n ${getSimilarFacts(lastHistory[0].message.text)} \n`},
-		    {role: "user", content: `\n${lastInteractions}\n{{user}}:${lastHistory[0].message.text}\n{{char}}:`}
+	//	    {role: "user", content: `\n${lastInteractions}\n{{user}}:${lastHistory[0].message.text}\n{{char}}:`}
 	      ]
+	      let last = lastInteractions()
+	      last.forEach( (value,index) => { msg.push(value) })
+	      msg.push( { role: "user", content: `${profile().user}:${lastHistory[0].message.text}\n${profile().bot}:`})
 	    output = await requestCompletion( msg, profile() );
 	    writeProfile()
 	}
@@ -113,6 +117,7 @@ app.get("/api/profile", async (req, res) => {
     console.log( JSON.stringify( makeProfileResponse(),"",2) )
 
 })
+
 app.post("/api/profile/name", async (req, res) => {
       console.log("Profile switched")
       const { profileName } = req.body
@@ -123,8 +128,11 @@ app.post("/api/profile/name", async (req, res) => {
 		console.log("Getting more responses")
 		  let msg = [...profile().messages, 
 			{role: "user", content: `\n ${context} \n`},
-			{role: "user", content: `\n${lastInteractions}\n{{user}}:${lastHistory[0].message.text}\n{{char}}:`}
+		//	{role: "user", content: `\n${lastInteractions}\n{{user}}:${lastHistory[0].message.text}\n{{char}}:`}
 		  ]
+	      let last = lastInteractions()
+	      last.forEach( (value,index) => { msg.push(value) })
+	      msg.push( { role: "user", content: `${profile().user}:${lastHistory[0].message.text}\n${profile().bot}:`})
 		output = await requestCompletion( msg, profile() );
 		writeProfile()
 	    }
@@ -307,8 +315,11 @@ app.post("/completions", async (req, res) => {
   writeHistory( "user", input )
   let msg = [...profile().messages, 
 	{role: "user", content: `\n ${context} \n`},
-	{role: "user", content: `\n${lastInteractions()}\n{{user}}:${input}\n{{char}}:`}
+	//{role: "user", content: `\n${lastInteractions()}\n{{user}}:${input}\n{{char}}:`}
   ]
+	      let last = lastInteractions()
+	      last.forEach( (value,index) => { msg.push(value) })
+	      msg.push( { role: "user", content: `${profile().user}:${input}\n${profile().bot}:`})
     console.log( JSON.stringify( msg, null, 2 ))
     console.log( "Sending!" )
   
@@ -361,8 +372,11 @@ app.post("/more_responses", async (req, res) => { // post because it may get new
     console.log("Getting more responses")
       let msg = [...profile().messages, 
 	    {role: "user", content: `\n ${context} \n`},
-	    {role: "user", content: `\n${lastInteractions}\n{{user}}:${inputText}\n{{char}}:`}
+	    //{role: "user", content: `\n${lastInteractions}\n{{user}}:${inputText}\n{{char}}:`}
       ]
+	  let last = lastInteractions()
+	  last.forEach( (value,index) => { msg.push(value) })
+	  msg.push( { role: "user", content: `{{user}}:${inputText}\n{{char}}:`})
       
       
     output = await requestCompletion( msg, profile() );

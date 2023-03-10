@@ -12,7 +12,7 @@ import { useDispatch } from 'react-redux';
 import decode from 'jwt-decode'; 
 import useStyles from './styles';
 import { CONNECT, CLEAR_CACHE, CLEAR_FACTS } from '../../constants/actionTypes';
-import { MdDelete, MdLogin } from "react-icons/md";
+import { MdDelete, MdLogin, MdRefresh } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 
 // import memories from '../../images/memories.png';
@@ -45,6 +45,7 @@ const NavBarItem = ({ title, classprops }) => (
     handleUpdateUserName,
     handleUpdateBotName,
     handleGetProfile,
+    handleRefreshProfile,
 } = useContext(ChatContext)
     
     useEffect(() => {
@@ -77,6 +78,9 @@ const NavBarItem = ({ title, classprops }) => (
     setLoading(false)
     
   }
+
+
+
   const connect = () => {
     setLoading(true)
     handleGetProfile()
@@ -86,24 +90,18 @@ const NavBarItem = ({ title, classprops }) => (
   }
 
   return (
-    <nav className="w-full flex md:justify-center justify-between items-center p-4">
+    <nav className="w-full flex md:justify-center justify-between items-center p-4 gap-4">
       <div className="md:flex-[0.49] flex-initial justify-center items-center">
         {(
 	  <div>
-	      <Button startIcon={<MdLogin />} variant="contained" className={classes.clearButton} disabled={loading} onClick={connect}>{ connected ? "Reconnect" :"Connect"}</Button>
+	      <Button startIcon={<MdRefresh />} variant="contained" className={classes.clearButton} disabled={loading} onClick={connect}>{ connected ? "Reconnect" :"Connect"}</Button>
 	  </div>
         )}
       </div>
       <div className="md:flex-[0.49] flex-initial justify-center items-center">
         {connected && (
-	  <div>
+	  <div className="flex flex-col gap-4">
 	      <Button startIcon={<MdDelete />} variant="contained" className={classes.clearButton} disabled={loading} onClick={clearCache}>Clear History</Button>
-	  </div>
-        )}
-      </div>
-      <div className="md:flex-[0.49] flex-initial justify-center items-center">
-        {connected && (
-	  <div>
 	      <Button startIcon={<MdDelete />} variant="contained" className={classes.clearButton} disabled={loading} onClick={clearFacts}>Clear Facts</Button>
 	  </div>
         )}

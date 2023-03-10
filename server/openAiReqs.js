@@ -69,11 +69,11 @@ async function requestCompletion(msg, res) {
         //model: "gpt-3.5-turbo",
         //model: "text-davinci-003", incorrect key
         messages: replaceVars( msg ),
-        temperature: 0.8,
+        temperature: 0.9,
         max_tokens: 300, // 500
 	n : 2,
         //top_p: 1,
-        frequency_penalty: 0.4,
+        frequency_penalty: 0.5,
         presence_penalty: 1,
         stop: [ `${profile().bot}: `, `${profile().user}: ` ],
       });
@@ -86,6 +86,7 @@ async function requestCompletion(msg, res) {
       })
       tokensUsed += response.data.usage.total_tokens;
       let usedTotal = tokensUsed + tokensEmbedUsed;
+      console.log( response.data )
       console.log( `Total tokens used from last restart: ${tokensUsed} text (turbo gpt chat) + ${tokensEmbedUsed} embeddings (ada) = ${usedTotal}`)
 
       cont = 0

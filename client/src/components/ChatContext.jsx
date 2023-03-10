@@ -193,7 +193,7 @@ const ChatProvider = ({children}) => {
       })
 
     const data = await response.json()
-    
+    setProfileName( pName )
     dataToProfile(data);  
     if (scrollDown.current)
 	scrollDown.current.scrollIntoView({ behavior: "smooth" });
@@ -205,6 +205,28 @@ const ChatProvider = ({children}) => {
 
     setLoading(false)
   }
+
+ const handleRefreshProfile = async () => {
+    setLoading(true)
+     try {
+    const response = await fetch("http://localhost:3000/api/refresh",{
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_Api_Key}`
+      }
+    })
+    const data = await response.json()
+    dataToProfile( data )
+    
+    if (scrollDown.current)
+	scrollDown.current.scrollIntoView({ behavior: "smooth" });
+      } catch (e) {
+	  alert("Are you sure server is running?" + e)
+      }
+    setInput("")
+    setLoading(false)
+    //setInput(  JSON.stringify(user))
+ }
 
  const handleGetProfile = async () => {
     setLoading(true)
@@ -757,7 +779,7 @@ const ChatProvider = ({children}) => {
     <ChatContext.Provider value={{
       user, setUser, profileName, setProfileName, bot, setBot,
 	    connected, setConnected, input, setInput, old, setOld, loading, setLoading, open, setOpen, scrollDown, handleClear, handleSubmit, handleRegenerate, handleRollback, handleEdit, handleGet, handleChatEdit, handleBack, handleNext, handleMoreResponses, handleGetProfile, chatMessages,
-      handleSwitchProfile, handleUpdateBotName, handleUpdateUserName, handleSaveProfile
+      handleSwitchProfile, handleUpdateBotName, handleUpdateUserName, handleSaveProfile, handleRefreshProfile
     }}>
       {children}
     </ChatContext.Provider>

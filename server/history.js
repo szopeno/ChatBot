@@ -27,15 +27,19 @@ function readHistory(){
 }
 function lastInteractions(howMany, dbName = "default") {
     let last = []
-    console.log("HOWMANY "+ howMany )
     howMany =profile().howManyInteractions
+    console.log("HOWMANY "+ howMany )
     readHistory().slice(-howMany).forEach( (item, index) => {
 	if (item.message.type === 'bot')
-	    last.push( `${profile().bot}: ${item.message.text}`)
+	//    last.push( `${profile().bot}: ${item.message.text}`)
+	      last.push( { role: "assistant", content: `${item.message.text}`})
 	else
-	    last.push( `${profile().user}: ${item.message.text}`)
+	//    last.push( `${profile().user}: ${item.message.text}`)
+	      last.push( { role: "user", content: `${item.message.text}`})
     })
-    return last.join("\n")
+    console.log( "HISTORY SIZE:" + last.length )
+    return last
+    //return last.join("\n")
 }
 
 function deleteLastFromHistory(){

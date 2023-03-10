@@ -38,7 +38,7 @@ function resetProfile() {
     let dbName = profileDir()+profile().name + ".profile.json"
     try {
 	let obj = defaultProfile()
-	if (dbName != "current") obj.profile = profileName
+	if (dbName != "current") obj.profile = profile().name
 	fs.writeFileSync(dbName, JSON.stringify(obj, null, 2));
 	return console.log(`${dbName} file reset successfully`);
     } catch (e) {
