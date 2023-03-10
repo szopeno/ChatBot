@@ -11,14 +11,14 @@ What has changed:
 * Server retries after 3 seconds after 500 and 429 HTTP errors 
 * I removed authorization with google API. I had no need for this.
 * You can regenerate last message, you can delete last interaction.
-* If you write character name followed by : it will replace last message (e.g. if character name is Paul, then "Paul: Hi!" will replace last message from bot by "Hi!")
-* /profile name switches to new profile. /profile ProfileName YourName BotName switches profile and changes your and bot's names.
+* /profile name switches to new profile.
 * You can modify messages in Settings. The "system" will be replaced as {role:"system", content: "your string"}. Others are just for my convenience annd their names do not
   really mean anything. they go to {role: "user", content: "message" }
-* You can edit by hand profile, it's "profileName.json". default.json links to the latest profile, and default.history.json to profileName.history.json
+* You can edit profiles by hand (they are in profiles). Current profile name is in config file
 * You can use {{char}} and {{user}} in messages, they will be replaced.
 * You can click on last bot's message and edit it. It will replace last message.
 * Changed input line to multiline
+* Profile editing in client stopped working. I will look at it during weekend
 * Client gets last profile from server
 * IT IS BUGGY AS HELL. Don't complain. 
 
@@ -31,8 +31,6 @@ This repository contains an advanced chatbot created with the OpenAI API that le
 
 The chatbot's advanced logic capabilities also mean that it can handle more complex conversations and provide more nuanced responses, making it feel like you're chatting with a real person. Additionally, the chatbot uses embeddings and databases to achieve long-term memory, allowing it to retain information from previous conversations and use that information to inform future interactions.
 
-To ensure a secure user experience, the chatbot also includes Know-Your-Customer (KYC) authentication through Google Login. This feature verifies the identity of users and helps prevent fraud and abuse.
-
 One of the key features of this chatbot is its flexible prompts. For example, the default prompt is designed to make the chatbot act like an Italian teacher, but you can easily modify the prompt to fit any other use case you have in mind. This makes the chatbot highly versatile and adaptable to a wide range of use cases.
 
 ### Features:
@@ -44,8 +42,6 @@ One of the key features of this chatbot is its flexible prompts. For example, th
 - Flexible prompts allow for easy customization to fit any use case
 
 - Advanced logic capabilities enable more complex conversations and nuanced responses
-
-- KYC authentication through Google Login ensures a secure user experience
 
 - Can be easily integrated into various applications and platforms
 
@@ -97,9 +93,6 @@ Create your **openai key** [here](https://platform.openai.com/account/api-keys)
 
 `VITE_Api_Key=<yourcustomapikeyforaccessingtheserver>`
 
-`VITE_Google_Client_id=<yourgoogleclientid>`
-
-Create a project and then a **google client id** [here](https://console.cloud.google.com/apis/credentials)
 
 **In the `VITE_Api_Key` field you have to place the same password or key that you placed in the `API_KEY` enviromental variable of the client .env file**
 
