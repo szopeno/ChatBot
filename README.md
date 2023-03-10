@@ -20,6 +20,8 @@ What has changed:
 * Changed input line to multiline
 * Profile editing in client stopped working. I will look at it during weekend
 * Client gets last profile from server
+* The conversation history was useful, but sometimes it messed with my RPG, so I removed it and instead introduced "fact". You can write them by "/fact NAME value". Fact database
+  will be searched for the fact most relevant to your input. Four most relevant facts will be inserted as (Facts to remember: ...; .... )
 * IT IS BUGGY AS HELL. Don't complain. 
 
 Below is original message from Fausto Nisida in his repositorium. Read it for instruction how to install:
