@@ -24,7 +24,8 @@ What has changed:
   will be searched for the fact most relevant to your input. Four most relevant facts will be inserted as (Facts to remember: ...; .... )
 * IT IS BUGGY AS HELL. Don't complain. 
 
-Below is original message from Fausto Nisida in his repositorium. Read it for instruction how to install:
+Below is original message from Fausto Nisida in his repositorium. Read it for instruction how to install. Remember to install node.js first!
+(e.g. look here https://nodejs.org/en/download/ - on linux, simply install appriopriate packages)
 
 Icons taken from here: https://icons8.com
 
